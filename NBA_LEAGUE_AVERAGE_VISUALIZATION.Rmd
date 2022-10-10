@@ -1,0 +1,79 @@
+---
+title: "NBA League Averages Visualizations"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+library(ggplot2)
+library(dplyr)
+library(shiny)
+library(readr)
+
+
+dat_league = read_csv("./NBA_LEAGUE_AVERAGE_PER_100_POSESSIONS.csv")
+dat_league %>% head()
+```
+
+
+Introduction {data-icon="fa-globe"}
+===============================================
+
+[Basketball-reference](https://www.basketball-reference.com/leagues/NBA_stats_totals.html)のデータを、
+[FlexDashboardの紹介ブログ記事](https://medium.com/@kar.prattusha/flex-dashboard-with-shiny-components-in-r-1229f3a3fa8a)を参考に、可視化してみます。
+
+Dash {data-icon="fa-globe"}
+===============================================
+
+Row {data-width=150}
+---------------------------------
+
+
+### Total Countries {.value-box}
+
+```{r}
+value_1 = 120
+
+renderValueBox({
+  valueBox(value_1, icon = "fa-flag", caption = "Test", color = "green")
+})
+```
+
+### world population growth rate (%) {.value-box}
+
+```{r}
+
+```
+
+### Total Years {.value-box}
+
+```{r}
+
+```
+
+Column {data-width=500 data-height=100 .tabset}
+-----------------------------------------------------------------------
+
+### PER 100 Possessions
+
+```{r}
+
+```
+
+### PER Games
+
+```{r}
+
+```
+
+### Total
+
+```{r}
+
+```
