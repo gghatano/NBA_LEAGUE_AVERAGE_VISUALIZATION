@@ -17,26 +17,25 @@ library(shiny)
 library(readr)
 library(magrittr)
 
-## データ読み込み
-dat_avg = read_csv("./data/NBA_LEAGUE_AVERAGE_PER_100_POSESSIONS.csv")
-dat_avg %>% head()
-
-
 ### 身長の表記をcmにする
 feet_to_meter = function(Ht = "3-1"){
   res = as.numeric(strsplit(Ht, "-")[[1]]) * c(30.48, 2.54)
   return(sum(res))
 }
 
-feet_to_meter_v = Vectorize(feet_to_meter)
-
 ## 前処理を行う関数
-preprocess_nba_league_avg_data = function(dat_avg = dat_avg){
+preprocess_nba_league_avg_data = function(dat_avg){
   
   ## ちゃんとデータが取れている年度に限定する
   dat_avg %>% 
     filter(Rk >= 2) %>% 
     filter(Rk <= 44) -> dat_avg
+  
+  ## シーズン情報
+  dat_avg %>% 
+    mutate(year = substr(X_Season, start = 1, stop = 4)) %>% 
+    mutate(X_Season = as.integer(year)) %>%
+    select(-year) -> dat_avg
   
   ## 身長を変換する
   dat_avg %>% 
@@ -48,69 +47,86 @@ preprocess_nba_league_avg_data = function(dat_avg = dat_avg){
     select(-Rk, -X_Lg) %>%
     pivot_longer(cols = !X_Season) -> dat_avg_long
   
-  ## 確認
-  dat_avg_long %>% head
-  
   return(dat_avg_long)
 }
 
-dat_avg_long = preprocess_nba_league_avg_data(dat_avg)
-dat_avg_long %>% head
+
 ```
 
 
-Introduction {data-icon="fa-globe"}
+NBA-DashBoard {data-icon="fa-globe"}
 ===============================================
 
-[Basketball-reference](https://www.basketball-reference.com/leagues/NBA_stats_totals.html)のデータを、
-[FlexDashboardの紹介ブログ記事](https://medium.com/@kar.prattusha/flex-dashboard-with-shiny-components-in-r-1229f3a3fa8a)を参考に、可視化してみます。
-
-Dash {data-icon="fa-globe"}
-===============================================
-
-Row {data-width=150}
----------------------------------
-
-
-### Total Countries {.value-box}
-
-```{r}
-value_1 = 120
-
-renderValueBox({
-  valueBox(value_1, icon = "fa-flag", caption = "Test", color = "green")
-})
-```
-
-### world population growth rate (%) {.value-box}
-
-```{r}
-
-```
-
-### Total Years {.value-box}
-
-```{r}
-
-```
-
-Column {data-width=500 data-height=100 .tabset}
+Column {data-width=250 data-height=100 .tabset}
 -----------------------------------------------------------------------
 
 ### PER 100 Possessions
 
 ```{r}
+dat_avg = read_csv("https://gist.githubusercontent.com/gghatano/5a250d08983d38ae34131e8d85524f7f/raw/42c305fb14ea967e556fc98f93f427a2099db3c9/NBA_LEAGUE_AVERAGE_PER_100_POSESSIONS.csv")
+dat_avg_long = preprocess_nba_league_avg_data(dat_avg)
 
+unique_name = dat_avg_long$name %>% unique
+
+selectInput("name_per100", label = h4("Please select colname for visualize"), choices = unique_name)
+
+renderPlotly({
+  ggplotly(
+    ggplot(dat_avg_long %>% filter(name == input$name_per100), aes(x = X_Season, y = value)) +
+    geom_line() + geom_point(color = "blue") + 
+    theme(plot.margin = margin(2,.8, 2, .8, "cm")) + 
+    labs(title= "NBA League Average(Per 100 Possessions)")
+  )
+})
 ```
 
 ### PER Games
 
 ```{r}
+dat_avg = read_csv("https://gist.githubusercontent.com/gghatano/5a250d08983d38ae34131e8d85524f7f/raw/42c305fb14ea967e556fc98f93f427a2099db3c9/NBA_LEAGUE_AVERAGE_PER_GAME.csv")
+dat_avg_long = preprocess_nba_league_avg_data(dat_avg)
+
+unique_name = dat_avg_long$name %>% unique
+
+selectInput("name_pergame", label = h4("Please select colname for visualize"), choices = unique_name)
+
+renderPlotly({
+  ggplotly(
+    ggplot(dat_avg_long %>% filter(name == input$name_pergame), aes(x = X_Season, y = value)) +
+    geom_line() + geom_point(color = "blue") + 
+    theme(plot.margin = margin(2,.8, 2, .8, "cm")) + 
+    labs(title= "NBA League Average(Per Game)")
+  )
+})
 
 ```
 
 ### Total
 
 ```{r}
+dat_avg = read_csv("https://gist.githubusercontent.com/gghatano/5a250d08983d38ae34131e8d85524f7f/raw/42c305fb14ea967e556fc98f93f427a2099db3c9/NBA_LEAGUE_AVERAGE_TOTAL.csv")
+dat_avg_long = preprocess_nba_league_avg_data(dat_avg)
 
+unique_name = dat_avg_long$name %>% unique
+
+selectInput("name_total", label = h4("Please select colname for visualize"), choices = unique_name)
+
+renderPlotly({
+  ggplotly(
+    ggplot(dat_avg_long %>% filter(name == input$name_total), aes(x = X_Season, y = value)) +
+    geom_line() + geom_point(color = "blue") + 
+    theme(plot.margin = margin(2,.8, 2, .8, "cm")) + 
+    labs(title= "NBA League Average(Total)")
+  )
+})
 ```
+Introduction {data-icon="fa-globe"}
+===============================================
+
+- [Basketball-reference](https://www.basketball-reference.com/leagues/NBA_stats_totals.html)のデータを、
+[FlexDashboardの紹介ブログ記事](https://medium.com/@kar.prattusha/flex-dashboard-with-shiny-components-in-r-1229f3a3fa8a)を参考に、可視化してみます。
+
+- TODO
+  - 2つのグラフを同時に見せるようにパネルを分ける
+  - ページ上部に気の利いた数字を出す
+
