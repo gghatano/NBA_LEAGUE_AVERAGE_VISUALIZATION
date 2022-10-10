@@ -15,10 +15,47 @@ library(ggplot2)
 library(dplyr)
 library(shiny)
 library(readr)
+library(magrittr)
+
+## データ読み込み
+dat_avg = read_csv("./data/NBA_LEAGUE_AVERAGE_PER_100_POSESSIONS.csv")
+dat_avg %>% head()
 
 
-dat_league = read_csv("./NBA_LEAGUE_AVERAGE_PER_100_POSESSIONS.csv")
-dat_league %>% head()
+### 身長の表記をcmにする
+feet_to_meter = function(Ht = "3-1"){
+  res = as.numeric(strsplit(Ht, "-")[[1]]) * c(30.48, 2.54)
+  return(sum(res))
+}
+
+feet_to_meter_v = Vectorize(feet_to_meter)
+
+## 前処理を行う関数
+preprocess_nba_league_avg_data = function(dat_avg = dat_avg){
+  
+  ## ちゃんとデータが取れている年度に限定する
+  dat_avg %>% 
+    filter(Rk >= 2) %>% 
+    filter(Rk <= 44) -> dat_avg
+  
+  ## 身長を変換する
+  dat_avg %>% 
+    mutate(X_Ht = map_dbl(X_Ht, feet_to_meter)) %>% 
+    mutate(X_Ht = round(X_Ht, 2)) -> dat_avg
+  
+  ### Rk(行番号)とX_Lg(リーグ)は除く
+  dat_avg %>% 
+    select(-Rk, -X_Lg) %>%
+    pivot_longer(cols = !X_Season) -> dat_avg_long
+  
+  ## 確認
+  dat_avg_long %>% head
+  
+  return(dat_avg_long)
+}
+
+dat_avg_long = preprocess_nba_league_avg_data(dat_avg)
+dat_avg_long %>% head
 ```
 
 
