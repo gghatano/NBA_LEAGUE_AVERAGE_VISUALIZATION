@@ -50,29 +50,33 @@ preprocess_nba_league_avg_data = function(dat_avg){
   return(dat_avg_long)
 }
 
+dat_avg_per100 = read_csv("https://gist.githubusercontent.com/gghatano/5a250d08983d38ae34131e8d85524f7f/raw/42c305fb14ea967e556fc98f93f427a2099db3c9/NBA_LEAGUE_AVERAGE_PER_100_POSESSIONS.csv")
+dat_avg_per100_long = preprocess_nba_league_avg_data(dat_avg_per100)
+
+dat_avg_pergame = read_csv("https://gist.githubusercontent.com/gghatano/5a250d08983d38ae34131e8d85524f7f/raw/42c305fb14ea967e556fc98f93f427a2099db3c9/NBA_LEAGUE_AVERAGE_PER_GAME.csv")
+dat_avg_pergame_long = preprocess_nba_league_avg_data(dat_avg_pergame)
+
+unique_data_name = c("Per-100-Possession", "Per-Game")
 
 ```
 
 
-NBA-DashBoard {data-icon="fa-globe"}
+
+NBA-League-Average(Per 100 Possesion) {data-icon="fa-globe"}
 ===============================================
 
-Column {data-width=250 data-height=100 .tabset}
+Row {data-width=150}
 -----------------------------------------------------------------------
 
-### PER 100 Possessions
-
+### PER 100 Possessions (Left)
 ```{r}
-dat_avg = read_csv("https://gist.githubusercontent.com/gghatano/5a250d08983d38ae34131e8d85524f7f/raw/42c305fb14ea967e556fc98f93f427a2099db3c9/NBA_LEAGUE_AVERAGE_PER_100_POSESSIONS.csv")
-dat_avg_long = preprocess_nba_league_avg_data(dat_avg)
+unique_name = dat_avg_per100_long$name %>% unique
 
-unique_name = dat_avg_long$name %>% unique
-
-selectInput("name_per100", label = h4("Please select colname for visualize"), choices = unique_name)
+selectInput("name_per100_left", label = h4("Please select colname for visualize"), choices = unique_name)
 
 renderPlotly({
   ggplotly(
-    ggplot(dat_avg_long %>% filter(name == input$name_per100), aes(x = X_Season, y = value)) +
+    ggplot(dat_avg_per100_long %>% filter(name == input$name_per100_left), aes(x = X_Season, y = value)) +
     geom_line() + geom_point(color = "blue") + 
     theme(plot.margin = margin(2,.8, 2, .8, "cm")) + 
     labs(title= "NBA League Average(Per 100 Possessions)")
@@ -80,19 +84,17 @@ renderPlotly({
 })
 ```
 
-### PER Games
-
+### PER 100 Possesion (right)
 ```{r}
-dat_avg = read_csv("https://gist.githubusercontent.com/gghatano/5a250d08983d38ae34131e8d85524f7f/raw/42c305fb14ea967e556fc98f93f427a2099db3c9/NBA_LEAGUE_AVERAGE_PER_GAME.csv")
-dat_avg_long = preprocess_nba_league_avg_data(dat_avg)
 
-unique_name = dat_avg_long$name %>% unique
+unique_name = dat_avg_pergame_long$name %>% unique
 
-selectInput("name_pergame", label = h4("Please select colname for visualize"), choices = unique_name)
+selectInput("name_per100_right", 
+            label = h4("Please select colname for visualize"), choices = unique_name)
 
 renderPlotly({
   ggplotly(
-    ggplot(dat_avg_long %>% filter(name == input$name_pergame), aes(x = X_Season, y = value)) +
+    ggplot(dat_avg_per100_long %>% filter(name == input$name_per100_right), aes(x = X_Season, y = value)) +
     geom_line() + geom_point(color = "blue") + 
     theme(plot.margin = margin(2,.8, 2, .8, "cm")) + 
     labs(title= "NBA League Average(Per Game)")
@@ -101,25 +103,6 @@ renderPlotly({
 
 ```
 
-### Total
-
-```{r}
-dat_avg = read_csv("https://gist.githubusercontent.com/gghatano/5a250d08983d38ae34131e8d85524f7f/raw/42c305fb14ea967e556fc98f93f427a2099db3c9/NBA_LEAGUE_AVERAGE_TOTAL.csv")
-dat_avg_long = preprocess_nba_league_avg_data(dat_avg)
-
-unique_name = dat_avg_long$name %>% unique
-
-selectInput("name_total", label = h4("Please select colname for visualize"), choices = unique_name)
-
-renderPlotly({
-  ggplotly(
-    ggplot(dat_avg_long %>% filter(name == input$name_total), aes(x = X_Season, y = value)) +
-    geom_line() + geom_point(color = "blue") + 
-    theme(plot.margin = margin(2,.8, 2, .8, "cm")) + 
-    labs(title= "NBA League Average(Total)")
-  )
-})
-```
 Introduction {data-icon="fa-globe"}
 ===============================================
 
@@ -128,5 +111,8 @@ Introduction {data-icon="fa-globe"}
 
 - TODO
   - 2つのグラフを同時に見せるようにパネルを分ける
+    - [完了] per100に絞って、2つのグラフを表示した
+    - [調査] データを選択するboxを置くと、グラフが小さくなる/はみ出すので諦めた(要調査)
   - ページ上部に気の利いた数字を出す
+    - 検討中
 
