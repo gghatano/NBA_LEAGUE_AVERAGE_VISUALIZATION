@@ -42,11 +42,21 @@ preprocess_nba_league_avg_data = function(dat_avg){
     mutate(X_Ht = map_dbl(X_Ht, feet_to_meter)) %>% 
     mutate(X_Ht = round(X_Ht, 2)) -> dat_avg
   
+  ## 2P%を算出する
+  dat_avg %>% 
+    mutate(`X_2P%` = (`X_eFG%` * X_FGA  - 1.5 *  X_3P ) / (X_FGA - X_3PA)) %>%
+    mutate(`X_2PA` = (X_FGA - X_3PA)) %>% 
+    mutate(`X_2P`  = `X_2P%` * `X_2PA`) -> dat_avg
+  
+  ## 3P%-eFGを算出する
+  dat_avg %>% 
+    mutate(`X_3P_eFG%`  = `X_3P%` * 1.5 ) -> dat_avg
+  
   ### Rk(行番号)とX_Lg(リーグ)は除く
   dat_avg %>% 
     select(-Rk, -X_Lg) %>%
     pivot_longer(cols = !X_Season) -> dat_avg_long
-  
+    
   return(dat_avg_long)
 }
 
@@ -57,6 +67,8 @@ dat_avg_pergame = read_csv("https://gist.githubusercontent.com/gghatano/5a250d08
 dat_avg_pergame_long = preprocess_nba_league_avg_data(dat_avg_pergame)
 
 unique_data_name = c("Per-100-Possession", "Per-Game")
+
+
 
 ```
 
@@ -95,6 +107,47 @@ selectInput("name_per100_right",
 renderPlotly({
   ggplotly(
     ggplot(dat_avg_per100_long %>% filter(name == input$name_per100_right), aes(x = X_Season, y = value)) +
+    geom_line() + geom_point(color = "blue") + 
+    theme(plot.margin = margin(2,.8, 2, .8, "cm")) + 
+    labs(title= "NBA League Average(Per 100 Possesions)")
+  )
+})
+
+```
+
+NBA-League-Average(Per Game) {data-icon="fa-globe"}
+===============================================
+
+Row {data-width=150}
+-----------------------------------------------------------------------
+
+### PER Game (Left)
+```{r}
+unique_name = dat_avg_pergame_long$name %>% unique
+
+selectInput("name_pergame_left", label = h4("Please select colname for visualize"), choices = unique_name)
+
+renderPlotly({
+  ggplotly(
+    ggplot(dat_avg_pergame_long %>% filter(name == input$name_pergame_left), aes(x = X_Season, y = value)) +
+    geom_line() + geom_point(color = "blue") + 
+    theme(plot.margin = margin(2,.8, 2, .8, "cm")) + 
+    labs(title= "NBA League Average(Per Game)")
+  )
+})
+```
+
+### PER Game (right)
+```{r}
+
+unique_name = dat_avg_pergame_long$name %>% unique
+
+selectInput("name_pergame_right", 
+            label = h4("Please select colname for visualize"), choices = unique_name)
+
+renderPlotly({
+  ggplotly(
+    ggplot(dat_avg_pergame_long %>% filter(name == input$name_pergame_right), aes(x = X_Season, y = value)) +
     geom_line() + geom_point(color = "blue") + 
     theme(plot.margin = margin(2,.8, 2, .8, "cm")) + 
     labs(title= "NBA League Average(Per Game)")
